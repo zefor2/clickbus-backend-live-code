@@ -15,15 +15,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @Api("places")
 @RestController
 @RequestMapping("places")
 public class PlaceController {
 
+    @Autowired
     private PlaceService service;
 
     @PostMapping
@@ -42,6 +45,16 @@ public class PlaceController {
     public ResponseEntity findAll() {
         Iterable<PlaceDTO> places = PlaceDTO.convertToList(service.findAll());
         return ResponseEntity.ok(places);
+    }
+
+    @GetMapping("/")
+    public ResponseEntity findByName(@RequestParam(value = "name") String name) {
+        List<Place> result = service.findByName(name);
+        if (result.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.ok(result);
+        }
     }
 
     @PutMapping("/{id}")
