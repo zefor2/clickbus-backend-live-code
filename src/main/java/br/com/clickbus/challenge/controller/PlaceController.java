@@ -1,11 +1,6 @@
 package br.com.clickbus.challenge.controller;
 
-
-import br.com.clickbus.challenge.dto.PlaceDTO;
-import br.com.clickbus.challenge.entity.Place;
-import br.com.clickbus.challenge.exception.PlaceNotFoundException;
-import br.com.clickbus.challenge.service.PlaceService;
-import io.swagger.annotations.Api;
+import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,38 +10,48 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.validation.Valid;
+import br.com.clickbus.challenge.dto.PlaceDTO;
+import br.com.clickbus.challenge.entity.Place;
+import br.com.clickbus.challenge.exception.PlaceNotFoundException;
+import br.com.clickbus.challenge.service.PlaceService;
+import io.swagger.annotations.Api;
 
 @Api("places")
 @RestController
 @RequestMapping("places")
 public class PlaceController {
 
-    private PlaceService service;
+	@Autowired
+	private PlaceService placeService;
 
-    @PostMapping
-    public ResponseEntity create(@RequestBody @Valid PlaceDTO dto) {
-        return new ResponseEntity(service.save(dto.buildPlace()).convertToDTO(), HttpStatus.CREATED);
-    }
+	@PostMapping
+	public ResponseEntity create(@RequestBody @Valid final PlaceDTO dto) {
+		return new ResponseEntity(placeService.save(dto.buildPlace()).convertToDTO(), HttpStatus.CREATED);
+	}
 
-    @GetMapping("{id}")
-    public ResponseEntity findById(@PathVariable Long id) {
-        return service.findById(id)
-                      .map(place -> ResponseEntity.ok(place.convertToDTO()))
-                      .orElseThrow(() -> new PlaceNotFoundException(HttpStatus.NOT_FOUND));
-    }
+	@GetMapping("{id}")
+	public ResponseEntity findById(@PathVariable final Long id) {
+		return placeService.findById(id).map(place -> ResponseEntity.ok(place.convertToDTO()))
+				.orElseThrow(() -> new PlaceNotFoundException(HttpStatus.NOT_FOUND));
+	}
 
-    @GetMapping
-    public ResponseEntity findAll() {
-        Iterable<PlaceDTO> places = PlaceDTO.convertToList(service.findAll());
-        return ResponseEntity.ok(places);
-    }
+	@GetMapping
+	public ResponseEntity findAll() {
+		final Iterable<PlaceDTO> places = PlaceDTO.convertToList(placeService.findAll());
+		return ResponseEntity.ok(places);
+	}
 
-    @PutMapping("/{id}")
-    public ResponseEntity alter(@PathVariable Long id, @RequestBody @Valid PlaceDTO placeDTO) {
-        Place place = service.findById(id).orElseThrow(null);
-        return new ResponseEntity(service.alter(place, placeDTO).convertToDTO(), HttpStatus.OK);
-    }
+	@GetMapping("/")
+	public ResponseEntity findByName(@RequestParam(name = "name") final String name) {
+		final Iterable<PlaceDTO> places = PlaceDTO.convertToList(placeService.findByName(name));
+		return ResponseEntity.ok(places);
+	}
+
+	@PutMapping("/{id}")
+	public ResponseEntity alter(@PathVariable final Long id, @RequestBody @Valid final PlaceDTO placeDTO) {
+		final Place place = placeService.findById(id).orElseThrow(null);
+		return new ResponseEntity(placeService.alter(place, placeDTO).convertToDTO(), HttpStatus.OK);
+	}
 }
